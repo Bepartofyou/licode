@@ -92,7 +92,8 @@ install_homebrew(){
 }
 
 install_brew_deps(){
-  brew install glib pkg-config boost cmake yasm log4cxx gettext coreutils
+  brew install glib pkg-config boost yasm log4cxx gettext coreutils
+  brew reinstall cmake
   install_nvm_node
   nvm use
   npm install
@@ -139,12 +140,16 @@ install_openssl(){
 install_libnice(){
   if [ -d $LIB_DIR ]; then
     cd $LIB_DIR
-    curl -OL https://nice.freedesktop.org/releases/libnice-0.1.4.tar.gz
-    tar -zxvf libnice-0.1.4.tar.gz
-    cd libnice-0.1.4
-    check_result $?
-    patch -R ./agent/conncheck.c < $PATHNAME/libnice-014.patch0
-    ./configure --prefix=$PREFIX_DIR && make $FAST_MAKE -s V=0 && make install
+    if [ ! -f ./libnice-0.1.4.tar.gz ]; then
+      curl -OL https://nice.freedesktop.org/releases/libnice-0.1.4.tar.gz
+      tar -zxvf libnice-0.1.4.tar.gz
+      cd libnice-0.1.4
+      check_result $?
+      patch -R ./agent/conncheck.c < $PATHNAME/libnice-014.patch0
+      ./configure --prefix=$PREFIX_DIR && make $FAST_MAKE -s V=0 && make install
+    else
+      echo "libnice already installed"
+    fi
     check_result $?
     cd $CURRENT_DIR
   else
@@ -156,11 +161,15 @@ install_libnice(){
 install_libsrtp(){
   if [ -d $LIB_DIR ]; then
     cd $LIB_DIR
-    curl -o libsrtp-2.1.0.tar.gz https://codeload.github.com/cisco/libsrtp/tar.gz/v2.1.0
-    tar -zxvf libsrtp-2.1.0.tar.gz
-    cd libsrtp-2.1.0
-    CFLAGS="-fPIC" ./configure --enable-openssl --prefix=$PREFIX_DIR --with-openssl-dir=$PREFIX_DIR
-    make $FAST_MAKE -s V=0 && make uninstall && make install
+    if [ ! -f ./libsrtp-2.1.0.tar.gz ]; then
+      curl -o libsrtp-2.1.0.tar.gz https://codeload.github.com/cisco/libsrtp/tar.gz/v2.1.0
+      tar -zxvf libsrtp-2.1.0.tar.gz
+      cd libsrtp-2.1.0
+      CFLAGS="-fPIC" ./configure --enable-openssl --prefix=$PREFIX_DIR --with-openssl-dir=$PREFIX_DIR
+      make $FAST_MAKE -s V=0 && make uninstall && make install
+    else
+      echo "libsrtp already installed"
+    fi
     check_result $?
     cd $CURRENT_DIR
   else
@@ -173,14 +182,18 @@ install_mediadeps(){
   brew install opus libvpx x264
   if [ -d $LIB_DIR ]; then
     cd $LIB_DIR
-    curl -O -L https://github.com/libav/libav/archive/v11.6.tar.gz
-    tar -zxvf v11.6.tar.gz
-    cd libav-11.6
-    curl -OL https://github.com/libav/libav/commit/4d05e9392f84702e3c833efa86e84c7f1cf5f612.patch
-    patch libavcodec/libvpxenc.c 4d05e9392f84702e3c833efa86e84c7f1cf5f612.patch && \
-    PKG_CONFIG_PATH=${PREFIX_DIR}/lib/pkgconfig ./configure --prefix=$PREFIX_DIR --enable-shared --enable-gpl --enable-libvpx --enable-libx264 --enable-libopus --disable-doc && \
-    make $FAST_MAKE -s V=0 && \
-    make install
+    if [ ! -f ./v11.6.tar.gz ]; then
+      curl -O -L https://github.com/libav/libav/archive/v11.6.tar.gz
+      tar -zxvf v11.6.tar.gz
+      cd libav-11.6
+      curl -OL https://github.com/libav/libav/commit/4d05e9392f84702e3c833efa86e84c7f1cf5f612.patch
+      patch libavcodec/libvpxenc.c 4d05e9392f84702e3c833efa86e84c7f1cf5f612.patch && \
+      PKG_CONFIG_PATH=${PREFIX_DIR}/lib/pkgconfig ./configure --prefix=$PREFIX_DIR --enable-shared --enable-gpl --enable-libvpx --enable-libx264 --enable-libopus --disable-doc && \
+      make $FAST_MAKE -s V=0 && \
+      make install
+    else
+      echo "libav already installed"
+    fi
     check_result $?
     cd $CURRENT_DIR
   else
@@ -193,14 +206,18 @@ install_mediadeps_nogpl(){
   brew install opus libvpx
   if [ -d $LIB_DIR ]; then
     cd $LIB_DIR
-    curl -O -L https://github.com/libav/libav/archive/v11.6.tar.gz
-    tar -zxvf v11.6.tar.gz
-    cd libav-11.6
-    curl -OL https://github.com/libav/libav/commit/4d05e9392f84702e3c833efa86e84c7f1cf5f612.patch
-    patch libavcodec/libvpxenc.c 4d05e9392f84702e3c833efa86e84c7f1cf5f612.patch && \
-    PKG_CONFIG_PATH=${PREFIX_DIR}/lib/pkgconfig ./configure --prefix=$PREFIX_DIR --enable-shared --enable-libvpx --enable-libopus --disable-doc && \
-    make $FAST_MAKE -s V=0 && \
-    make install
+    if [ ! -f ./v11.6.tar.gz ]; then
+      curl -O -L https://github.com/libav/libav/archive/v11.6.tar.gz
+      tar -zxvf v11.6.tar.gz
+      cd libav-11.6
+      curl -OL https://github.com/libav/libav/commit/4d05e9392f84702e3c833efa86e84c7f1cf5f612.patch
+      patch libavcodec/libvpxenc.c 4d05e9392f84702e3c833efa86e84c7f1cf5f612.patch && \
+      PKG_CONFIG_PATH=${PREFIX_DIR}/lib/pkgconfig ./configure --prefix=$PREFIX_DIR --enable-shared --enable-libvpx --enable-libopus --disable-doc && \
+      make $FAST_MAKE -s V=0 && \
+      make install
+    else
+      echo "libav already installed"
+    fi
     check_result $?
     cd $CURRENT_DIR
   else
