@@ -148,7 +148,7 @@ const Stream = (altConnectionHelpers, specInput) => {
         Logger.info('Requested access to local media');
         let videoOpt = spec.video;
         if (videoOpt === true || spec.screen === true) {
-          videoOpt = videoOpt === true ? {} : videoOpt;
+          videoOpt = videoOpt === true || videoOpt === null ? {} : videoOpt;
           if (that.videoSize !== undefined) {
             videoOpt.width = {
               min: that.videoSize[0],
@@ -242,6 +242,7 @@ const Stream = (altConnectionHelpers, specInput) => {
         pc.off('ice-state-change', onICEConnectionStateChange);
       });
     }
+    that.removeAllListeners();
   };
 
   that.play = (elementID, optionsInput) => {
@@ -419,17 +420,21 @@ const Stream = (altConnectionHelpers, specInput) => {
   };
 
   // eslint-disable-next-line no-underscore-dangle
-  that._setMinSpatialLayer = (spatialLayer, callback = () => {}) => {
+  that._enableSlideShowBelowSpatialLayer = (enabled, spatialLayer = 0, callback = () => {}) => {
     if (that.room && that.room.p2p) {
-      Logger.warning('setMinSpatialLayer is not implemented in p2p streams');
+      Logger.warning('enableSlideShowBelowSpatialLayer is not implemented in p2p streams');
       callback('error');
       return;
     }
-    const config = { minLayer: { spatialLayer } };
+    const config = { slideShowBelowLayer: { enabled, spatialLayer } };
     that.checkOptions(config, true);
     Logger.debug('Calling updateSpec with config', config);
     that.pc.updateSpec(config, that.getID(), callback);
   };
+
+  // This is an alias to keep backwards compatibility
+  // eslint-disable-next-line no-underscore-dangle
+  that._setMinSpatialLayer = that._enableSlideShowBelowSpatialLayer.bind(this, true);
 
   const controlHandler = (handlersInput, publisherSideInput, enable) => {
     let publisherSide = publisherSideInput;
